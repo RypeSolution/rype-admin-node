@@ -104,7 +104,7 @@ wsServer.on('request', function (request) {
     })
     
     connection.on('close', function(reasonCode, description){
-        messageHandler.webSocketHandler.onClose(this, reasonCode, description)
+        messageHandler.wsHandler.onClose(this, reasonCode, description)
     })
     
 })

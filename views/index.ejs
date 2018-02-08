@@ -5,7 +5,13 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/jpeg" href="images/rype_logo.jpeg" />
     <title>Rype - Admin</title>
+
+    <!-- reference the ag-Grid library-->
+    <script src="https://unpkg.com/ag-grid/dist/ag-grid.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.5/lodash.min.js"></script>
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
@@ -13,10 +19,23 @@
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <style>
-        body    { padding-top:50px; }
+        body    {
+            padding-top:50px;
+            width: 100%;
+        }
+
+        #connection_alert {
+            display: none;
+        }
     </style>
 </head>
-<body class="container">
+<body style="position: relative">
+
+<div id="connection_alert" style="background-color: orange;width: 100%;position: absolute;left: 0px;top: 0px;height: 32px">
+    <center style="color: white"><h5>Connection lost, please refresh the page</h5></center>
+</div>
+
+<div class="container">
 
 <nav class="navbar navbar-default">
     <div class="container-fluid">
@@ -28,14 +47,18 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="#">Rype Admin</a>
+            <a class="navbar-brand" href="#" style="padding: 10px 16px">
+                <img alt="Brand" src="images/rype_logo.jpeg" width="32px" height="32px" style="border-radius: 16%;">
+            </a>
         </div>
 
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <h4 class="navbar-text"><span style="color: forestgreen">Rype</span> Admin</h4>
             <ul class="nav navbar-nav">
-                <li class="active"><a href="#">Rental Items <span class="sr-only">(current)</span></a></li>
-                <li><a href="#">Users</a></li>
+                <li class="active"><a href="#users" aria-controls="settings" role="tab" data-toggle="tab">Users</a></li>
+                <li><a href="#rental_items" aria-controls="settings" role="tab" data-toggle="tab">Rental Items <span class="sr-only">(current)</span></a></li>
+
             </ul>
             <ul class="nav navbar-nav navbar-right">
                 <li><a href="#">Link</a></li>
@@ -51,12 +74,25 @@
 </nav>
 
 <main>
-    <div class="row">
-        <h1>This is great</h1>
-        <p>Welcome to templating using EJS</p>
+    <!-- Tab panes -->
+    <div class="tab-content">
+        <div role="tabpanel" class="tab-pane active" id="users">
+            <h1>Rype Customers</h1>
+
+            <!-- the div ag-Grid will use to render it's data -->
+            <div id="myGrid" style="height: 115px;width:500px" class="ag-theme-fresh"></div>
+        </div>
+        <div role="tabpanel" class="tab-pane" id="rental_items">
+            <div class="row">
+                <h1>Rype Rentals</h1>
+                <p>Nothing here</p>
+            </div>
+        </div>
     </div>
+
 </main>
 
+</div>
 <!-- Latest compiled and minified JavaScript -->
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
