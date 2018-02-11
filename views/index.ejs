@@ -8,6 +8,8 @@
     <link rel="icon" type="image/jpeg" href="images/rype_logo.jpeg" />
     <title>Rype - Admin</title>
 
+    <link rel="import" href="component/event-terminal.html">
+
     <!-- reference the ag-Grid library-->
     <script src="https://unpkg.com/ag-grid/dist/ag-grid.min.js"></script>
 
@@ -27,9 +29,19 @@
         #connection_alert {
             display: none;
         }
+
+        app-drawer:not(:defined) {
+            /* Pre-style, give layout, replicate app-drawer's eventual styles, etc. */
+            display: inline-block;
+            height: 100vh;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
     </style>
 </head>
 <body style="position: relative">
+
+
 
 <div id="connection_alert" style="background-color: orange;width: 100%;position: absolute;left: 0px;top: 0px;height: 32px">
     <center style="color: white"><h5>Connection lost, please refresh the page</h5></center>
@@ -94,12 +106,29 @@
             <h1>Rype Customers</h1>
 
             <!-- the div ag-Grid will use to render it's data -->
-            <div id="myGrid" style="height: 115px;width: 100%" class="ag-theme-fresh"></div>
+            <div id="myGrid" style="height: 200px;width: 100%" class="ag-theme-fresh"></div>
+
+            <event-terminal></event-terminal>
+
+            <event-terminal value="tester1"></event-terminal>
         </div>
         <div role="tabpanel" class="tab-pane" id="rental_items">
             <div class="row">
                 <h1>Rype Rentals</h1>
                 <p>Nothing here</p>
+                <div class="dropup">
+                    <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Dropup
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenu2">
+                        <li><a href="#">Action</a></li>
+                        <li><a href="#">Another action</a></li>
+                        <li><a href="#">Something else here</a></li>
+                        <li role="separator" class="divider"></li>
+                        <li><a href="#">Separated link</a></li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
@@ -111,5 +140,13 @@
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
 <script src="js/app.js"></script>
+
+<script>
+    customElements.define('event-terminal', EventTerminal)
+
+    customElements.whenDefined('event-terminal').then(() => {
+        console.log('event-terminal defined');
+    });
+</script>
 </body>
 </html>

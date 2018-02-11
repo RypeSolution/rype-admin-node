@@ -68,7 +68,7 @@ wsServer.on('request', function (request) {
         console.log((new Date()) + ' Connection from origin ' + request.origin + ' rejected.');
         return;
     }
-    console.dir('websocket:', request.resourceURL)
+    console.dir('websocket:', request)
     
     const connection = request.accept('echo-protocol', request.origin);
     
