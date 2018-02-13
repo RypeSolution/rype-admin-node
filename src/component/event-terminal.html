@@ -1,23 +1,13 @@
 <template id="event-terminal-from-template">
 
     <style>
-        p {
-            color: green;
-        }
-
-        .dropdown, .dropup {
-            position: relative;
+        html {
+            font-size: 10px;
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
         }
 
         .btn .caret {
             margin-left: 0;
-        }
-
-        .dropup .caret, .navbar-fixed-bottom .dropdown .caret {
-            content: "";
-            border-top: 0;
-            border-bottom: 4px dashed;
-            border-bottom: 4px solid \9;
         }
 
         .caret {
@@ -85,12 +75,73 @@
             border-color: #ccc;
         }
 
+        .btn-default {
+            color: #333;
+            background-color: #fff;
+            border-color: #ccc;
+        }
+        .btn-default:focus,
+        .btn-default.focus {
+            color: #333;
+            background-color: #e6e6e6;
+            border-color: #8c8c8c;
+        }
+        .btn-default:hover {
+            color: #333;
+            background-color: #e6e6e6;
+            border-color: #adadad;
+        }
+        .btn-default:active,
+        .btn-default.active,
+        .open > .dropdown-toggle.btn-default {
+            color: #333;
+            background-color: #e6e6e6;
+            border-color: #adadad;
+        }
+        .btn-default:active:hover,
+        .btn-default.active:hover,
+        .open > .dropdown-toggle.btn-default:hover,
+        .btn-default:active:focus,
+        .btn-default.active:focus,
+        .open > .dropdown-toggle.btn-default:focus,
+        .btn-default:active.focus,
+        .btn-default.active.focus,
+        .open > .dropdown-toggle.btn-default.focus {
+            color: #333;
+            background-color: #d4d4d4;
+            border-color: #8c8c8c;
+        }
+        .btn-default:active,
+        .btn-default.active,
+        .open > .dropdown-toggle.btn-default {
+            background-image: none;
+        }
+        .btn-default.disabled:hover,
+        .btn-default[disabled]:hover,
+        fieldset[disabled] .btn-default:hover,
+        .btn-default.disabled:focus,
+        .btn-default[disabled]:focus,
+        fieldset[disabled] .btn-default:focus,
+        .btn-default.disabled.focus,
+        .btn-default[disabled].focus,
+        fieldset[disabled] .btn-default.focus {
+            background-color: #fff;
+            border-color: #ccc;
+        }
+
         :after, :before {
             -webkit-box-sizing: border-box;
             -moz-box-sizing: border-box;
             box-sizing: border-box;
         }
 
+        .dropdown, .dropup {
+            position: relative;
+        }
+
+        .dropdown-toggle:focus {
+            outline: 0;
+        }
         .dropdown-menu {
             position: absolute;
             top: 100%;
@@ -124,6 +175,94 @@
             bottom: 100%;
             margin-bottom: 2px;
         }
+
+        .open>.dropdown-menu {
+            display: block;
+        }
+
+        .dropdown-menu>li>a {
+            display: block;
+            padding: 3px 20px;
+            clear: both;
+            font-weight: 400;
+            line-height: 1.42857143;
+            color: #333;
+            white-space: nowrap;
+        }
+
+        .dropdown-menu .divider {
+            height: 1px;
+            margin: 9px 0;
+            overflow: hidden;
+            background-color: #e5e5e5;
+        }
+
+        .dropdown-menu.pull-right {
+            right: 0;
+            left: auto;
+        }
+        .dropdown-menu .divider {
+            height: 1px;
+            margin: 9px 0;
+            overflow: hidden;
+            background-color: #e5e5e5;
+        }
+        .dropdown-menu > li > a {
+            display: block;
+            padding: 3px 20px;
+            clear: both;
+            font-weight: normal;
+            line-height: 1.42857143;
+            color: #333;
+            white-space: nowrap;
+        }
+        .dropdown-menu > li > a:hover,
+        .dropdown-menu > li > a:focus {
+            color: #262626;
+            text-decoration: none;
+            background-color: #f5f5f5;
+        }
+        .dropdown-menu > .active > a,
+        .dropdown-menu > .active > a:hover,
+        .dropdown-menu > .active > a:focus {
+            color: #fff;
+            text-decoration: none;
+            background-color: #337ab7;
+            outline: 0;
+        }
+        .dropdown-menu > .disabled > a,
+        .dropdown-menu > .disabled > a:hover,
+        .dropdown-menu > .disabled > a:focus {
+            color: #777;
+        }
+        .dropdown-menu > .disabled > a:hover,
+        .dropdown-menu > .disabled > a:focus {
+            text-decoration: none;
+            cursor: not-allowed;
+            background-color: transparent;
+            background-image: none;
+            filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
+        }
+        .open > .dropdown-menu {
+            display: block;
+        }
+
+        a {
+            color: #337ab7;
+            text-decoration: none;
+        }
+
+        a:focus {
+            outline: 5px auto -webkit-focus-ring-color;
+            outline-offset: -2px;
+        }
+
+        .dropup .caret, .navbar-fixed-bottom .dropdown .caret {
+            content: "";
+            border-top: 0;
+            border-bottom: 4px dashed;
+            border-bottom: 4px solid \9;
+        }
     </style>
 
     <div class="dropdown">
@@ -156,9 +295,10 @@
          * ======================================================================== */
 
 
-        +function ($, document) {
+        function initJs($, document) {
             'use strict';
 
+            console.log('jquery: %s, document: %s', $, document)
             // DROPDOWN CLASS DEFINITION
             // =========================
 
@@ -185,8 +325,12 @@
 
             function clearMenus(e) {
                 if (e && e.which === 3) return
-                $(backdrop).remove()
-                $(toggle).each(function () {
+
+                let doc$ = $(document)
+                let backdrop$ = doc$.find(backdrop), toggle$ = doc$.find(toggle)
+
+                backdrop$.remove()
+                toggle$.each(function () {
                     var $this = $(this)
                     var $parent = getParent($this)
                     var relatedTarget = {relatedTarget: this}
@@ -195,7 +339,9 @@
 
                     if (e && e.type == 'click' && /input|textarea/i.test(e.target.tagName) && $.contains($parent[0], e.target)) return
 
+
                     $parent.trigger(e = $.Event('hide.bs.dropdown', relatedTarget))
+                    console.log('PAST', $parent, 'prevented:', e.isDefaultPrevented())
 
                     if (e.isDefaultPrevented()) return
 
@@ -205,11 +351,13 @@
             }
 
             Dropdown.prototype.toggle = function (e) {
+                console.log('toggle called')
                 var $this = $(this)
 
                 if ($this.is('.disabled, :disabled')) return
 
                 var $parent = getParent($this)
+
                 var isActive = $parent.hasClass('open')
 
                 clearMenus()
@@ -279,6 +427,7 @@
             function Plugin(option) {
                 return this.each(function () {
                     var $this = $(this)
+                    console.log('has data:', this)
                     var data = $this.data('bs.dropdown')
 
                     if (!data) $this.data('bs.dropdown', (data = new Dropdown(this)))
@@ -313,9 +462,9 @@
                 .on('keydown.bs.dropdown.data-api', toggle, Dropdown.prototype.keydown)
                 .on('keydown.bs.dropdown.data-api', '.dropdown-menu', Dropdown.prototype.keydown)
 
-        }(jQuery, thisDoc);
+        }
 
-        console.log('query', jQuery)
+        //console.log('query', jQuery)
     </script>
 
 </template>
@@ -339,10 +488,26 @@
             let tmpl = importedDoc.querySelector('#event-terminal-from-template')
 
             let shadowRoot = this.attachShadow({mode: 'open'})
+            shadowRoot.appendChild(tmpl.content.cloneNode(true))
+            shadowRoot.documentElement = {}
 
-            this._elem = tmpl.content.cloneNode(true)
-            shadowRoot.appendChild(this._elem)
-            //this.appendChild(tmpl.content.cloneNode(true))
+            initJs(jQuery, shadowRoot)
+
+            var elem = this.elems.dropdown.querySelector('.dropdown-toggle')
+            $(elem).dropdown()
+
+            var self = this
+            $(document).on('click', function(){
+                console.log('click', $(self.elems.dropdown.querySelector('.dropdown-toggle')).data('bs.dropdown'))
+                $(elem).data('bs.dropdown').toggle()
+            });
+        }
+
+        get elems(){
+            return {
+                dropdown: this.shadowRoot.querySelector('.dropdown'),
+                dropdownMenu: this.shadowRoot.querySelector('.dropdown-menu'),
+            }
         }
 
         connectedCallback() {
