@@ -12,9 +12,9 @@ class WebSocketHandler extends EventEmitter {
         this.constructor.HANDLERS[Math.random()] = this
     }
     
-    onMessage(connection, message, messageType) {
-        console.log('Received Message: ' + message.utf8Data);
-        return {test: 'yes'}
+    onMessage(connection, message) {
+        console.log('Received Message: ' + message.msg)
+        return {type: 'utf8', data: 'hello world'}
     }
     
     topic(connection, callback) {
@@ -37,6 +37,7 @@ const wsHandler = new WebSocketHandler()
 wsHandler.topic('/status', (conn, msg) => {
 
 })
+
 
 const routeHandler = new express.Router()
 

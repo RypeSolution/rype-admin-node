@@ -2,40 +2,109 @@
  * Created by anthony on 02/02/2018.
  */
 
+class Deferred {
+    
+    constructor(){
+        this.id = `${this.constructor._ID++}`
+        
+        this.promise = new Promise((res, rej) => {
+            this.resolve = res
+            this.reject = rej
+        })
+    }
+    
+    cancel(){
+        this.reject('Cancelled!')
+    }
+    
+    then(...args){
+        this._promise = (this._promise || this.promise).then(...args)
+        return this
+    }
+}
+
+Deferred._ID = 1
+
 class RypeAdmin extends EventEmitter3 {
+    
+    constructor(){
+        super()
+        this.retryCount = {api:0, server: 0}
+        this.deferreds = {}
+    }
     
     get elems() {
         return {connectionAlert: $('#connection_alert')}
     }
     
-    connectToServer() {
-        let url = 'ws://localhost:26116'
+    connect(url, options={}){
         let ws = new WebSocket(url, 'echo-protocol')
-        
+        this.retryCount[options.retryCount]++
+    
         _.merge(WebSocket.prototype, Object.create(EventEmitter3.prototype))
         EventEmitter3.call(ws)
-        
+    
         ws.onopen = () => {
-            this.emit('server_connected')
+            this.retryCount[options.retryCount] = 0
+            this.emit(options.connected || 'server_connected')
         }
-        
+    
         ws.onclose = () => {
-            this.emit('server_disconnected')
+            this.emit(options.disconnected || 'server_disconnected')
         }
-        
+    
         ws.onerror = (err) => {
             console.error(err)
         }
         
-        this.server = ws
+        ws.json = (topic, data) => {
+            let deferred = new Deferred()
+            this.deferreds[deferred.id] = deferred
+            
+            let req = {topic:`${topic}?uid=${deferred.id}`, data: data}
+            ws.send(JSON.stringify(req))
+            return deferred
+        }
+        
+        ws.onmessage = (message) => {
+            let msg = JSON.parse(message.data)
+    
+            let parsed = _.chain(_.last(_.split(msg.topic, '?', 2)))
+                .replace('?', '') // a=b454&c=dhjjh&f=g6hksdfjlksd
+                .split('&') // ["a=b454","c=dhjjh","f=g6hksdfjlksd"]
+                .map(_.partial(_.split, _, '=', 2)) // [["a","b454"],["c","dhjjh"],["f","g6hksdfjlksd"]]
+                .fromPairs() // {"a":"b454","c":"dhjjh","f":"g6hksdfjlksd"}
+                .value()
+            
+            let deferredId = parsed.uid
+            let deferred = this.deferreds[deferredId]
+            
+            if(_.isObject(deferred)){
+                delete this.deferreds[deferredId]
+                deferred.resolve(msg)
+            }else{
+                console.error('no pending promise', message)
+            }
+        }
+        
+        return ws
+    }
+    
+    connectToServer() {
+        this.server = this.connect('ws://localhost:26116', {connected:'server_connected', disconnected: 'server_disconnected', retryCount: 'server'})
+    }
+    
+    connectToApi() {
+        this.api = this.connect('ws://localhost:9000', {connected:'api_connected', disconnected: 'api_disconnected', retryCount: 'api'})
     }
 }
 
-const app = new RypeAdmin()
+window.app = new RypeAdmin()
 
 app.on('server_disconnected', () => {
     console.log('server disconnected')
     app.elems.connectionAlert.show().slideDown()
+    setTimeout(() => app.connectToServer(), 1000 * app.retryCount.server)
 })
 
 app.on('server_connected', () => {
@@ -43,7 +112,15 @@ app.on('server_connected', () => {
     app.elems.connectionAlert.slideUp().hide()
 })
 
+app.on('api_disconnected', () => {
+    console.log('api disconnected')
+    setTimeout(() => app.connectToApi(), 1000 * app.retryCount.api)
+})
+
+app.on('api_connected', () => console.log('api connected'))
+
 app.connectToServer()
+app.connectToApi()
 
 let rowData = [
     {
@@ -73,9 +150,9 @@ let columnDefs = [
         groupId: 'medalsGroup',
         children: [
             // using medal column type
-            {headerName: 'Gold', field: 'gold', type: 'medalColumn'},
-            {headerName: 'Silver', field: 'silver', type: 'medalColumn'},
-            {headerName: 'Bronze', field: 'bronze', type: 'medalColumn'}
+            {headerName: 'Gold', field: 'gold', type: 'string'},
+            {headerName: 'Silver', field: 'silver', type: 'string'},
+            {headerName: 'Bronze', field: 'bronze', type: 'string'}
         ]
     }
 ]
@@ -84,8 +161,8 @@ let columnDefs = [
 // let the grid know which columns and what data to use
 var gridOptions = {
     medalColumn: {width: 100, columnGroupShow: 'open', suppressFilter: true},
-    debug: true,
-    showToolPanel: true,
+    debug: false,
+    //showToolPanel: true,
     enableSorting: true,
     enableColResize: true,
     columnDefs: columnDefs,

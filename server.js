@@ -76,9 +76,9 @@ wsServer.on('request', function (request) {
     console.log((new Date()) + ' Connection accepted.');
     
     connection.on('message', function(msg){
-        let resp = messageHandler.wsHandler.onMessage(this, msg, msg.type)
+        let resp = messageHandler.wsHandler.onMessage(this, {msg:JSON.parse(msg.utf8Data), type:msg.type, raw:msg})
         
-        switch(resp.dataType){
+        switch(resp.type){
             case 'utf8':
                 let dataStr = resp.data
     

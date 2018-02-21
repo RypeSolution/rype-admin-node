@@ -30,12 +30,17 @@
             display: none;
         }
 
-        app-drawer:not(:defined) {
-            /* Pre-style, give layout, replicate app-drawer's eventual styles, etc. */
+        event-terminal:not(:defined) {
             display: inline-block;
             height: 100vh;
             opacity: 0;
             transition: opacity 0.3s ease-in-out;
+            background-color: hotpink;
+        }
+
+        event-terminal {
+            height: 40px;
+            width: 200px;
         }
     </style>
 </head>
@@ -108,14 +113,25 @@
             <!-- the div ag-Grid will use to render it's data -->
             <div id="myGrid" style="height: 200px;width: 100%" class="ag-theme-fresh"></div>
 
-            <event-terminal></event-terminal>
-
-            <event-terminal value="tester1"></event-terminal>
         </div>
         <div role="tabpanel" class="tab-pane" id="rental_items">
             <div class="row">
                 <h1>Rype Rentals</h1>
                 <p>Nothing here</p>
+                <div class="dropup">
+                    <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Dropup
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenu2">
+                        <li><a href="#">Action</a></li>
+                        <li><a href="#">Another action</a></li>
+                        <li><a href="#">Something else here</a></li>
+                        <li role="separator" class="divider"></li>
+                        <li><a href="#">Separated link</a></li>
+                    </ul>
+                </div>
+
                 <div class="dropup">
                     <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         Dropup
@@ -142,8 +158,6 @@
 <script src="js/app.js"></script>
 
 <script>
-    customElements.define('event-terminal', EventTerminal)
-
     customElements.whenDefined('event-terminal').then(() => {
         console.log('event-terminal defined');
     });
