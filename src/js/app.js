@@ -34,7 +34,8 @@ class RypeAdmin extends EventEmitter3 {
     }
     
     get elems() {
-        return {connectionAlert: $('#connection_alert')}
+        return {connectionAlert: $('#connection_alert'),
+                usersGridDiv: $(document.querySelector('#myGrid'))}
     }
     
     connect(url, options={}){
@@ -43,6 +44,24 @@ class RypeAdmin extends EventEmitter3 {
     
         _.merge(WebSocket.prototype, Object.create(EventEmitter3.prototype))
         EventEmitter3.call(ws)
+        
+        let name = options.retryCount
+        
+        let subscriptions = ws.subscriptons = {}
+        
+        ws.on = function (eventName, callback) {
+            let topic = `/${eventName}`
+            console.log(`${name}: event=${eventName}, topic=${topic}`)
+            
+            let subscribe = `/subscribe?subject=${eventName}`
+            ws.json(subscribe)
+                .then((resp) => {
+                    subscriptions[resp.data.subscribed] = 0
+                    console.log('subscriptions:', subscriptions)
+                    
+                    EventEmitter3.prototype.on.call(ws, eventName, callback)
+                })
+        }
     
         ws.onopen = () => {
             this.retryCount[options.retryCount] = 0
@@ -61,29 +80,34 @@ class RypeAdmin extends EventEmitter3 {
             let deferred = new Deferred()
             this.deferreds[deferred.id] = deferred
             
-            let req = {topic:`${topic}?uid=${deferred.id}`, data: data}
+            let req = {topic:`${topic}${_.includes(topic, '?') ? '&' : '?'}uid=${deferred.id}`, data: data}
             ws.send(JSON.stringify(req))
             return deferred
         }
         
         ws.onmessage = (message) => {
             let msg = JSON.parse(message.data)
+            let parts = _.split(msg.topic, '?', 2)
     
-            let parsed = _.chain(_.last(_.split(msg.topic, '?', 2)))
+            let parsed = _.chain(_.last(parts))
                 .replace('?', '') // a=b454&c=dhjjh&f=g6hksdfjlksd
                 .split('&') // ["a=b454","c=dhjjh","f=g6hksdfjlksd"]
                 .map(_.partial(_.split, _, '=', 2)) // [["a","b454"],["c","dhjjh"],["f","g6hksdfjlksd"]]
                 .fromPairs() // {"a":"b454","c":"dhjjh","f":"g6hksdfjlksd"}
                 .value()
-            
+    
             let deferredId = parsed.uid
             let deferred = this.deferreds[deferredId]
-            
-            if(_.isObject(deferred)){
+            let topic = _.first(parts)
+    
+            if (_.isObject(deferred)) {
                 delete this.deferreds[deferredId]
                 deferred.resolve(msg)
-            }else{
-                console.error('no pending promise', message)
+            } else if (topic === '/subscribe' && parsed.subject in subscriptions) {
+                subscriptions[parsed.subject]++
+                ws.emit(parsed.subject, msg)
+            } else {
+                console.error('no pending promise', message, topic, parsed)
             }
         }
         
@@ -96,6 +120,35 @@ class RypeAdmin extends EventEmitter3 {
     
     connectToApi() {
         this.api = this.connect('ws://localhost:9000', {connected:'api_connected', disconnected: 'api_disconnected', retryCount: 'api'})
+    }
+    
+    get usersGridOptions(){
+        if(this._usersGridOptions) return this._usersGridOptions
+        let columnDefs = [
+            {headerName: "Name", field: "name"},
+            {headerName: "Email", field: "email"},
+            {headerName: "Created At", field: "createdAt"},
+            //{headerName: "Date of Birth", field: "dob"}
+        ]
+    
+        this._usersGridOptions = {
+            debug: false,
+            enableSorting: true,
+            enableColResize: true,
+            rowData: [],
+            columnDefs: columnDefs,
+            enableFilter: true,
+            floatingFilter: true,
+            animateRows: true,
+        }
+        return this._usersGridOptions
+    }
+    
+    get usersGrid(){
+        if(this._usersTable) return this._usersTable
+        
+        this._usersTable = new agGrid.Grid(this.elems.usersGridDiv.get(0), this.usersGridOptions)
+        return this._usersTable
     }
 }
 
@@ -117,7 +170,19 @@ app.on('api_disconnected', () => {
     setTimeout(() => app.connectToApi(), 1000 * app.retryCount.api)
 })
 
-app.on('api_connected', () => console.log('api connected'))
+app.on('api_connected', () => {
+    console.log('api connected')
+    let usersTable = app.usersGrid // init table
+
+    app.api.on('db_update', (msg) => {
+        console.log('db update:', msg)
+        
+        for(let update of msg.data.updates){
+            app.usersGridOptions.api.updateRowData({add: [update.value]})
+        }
+        
+    })
+})
 
 app.connectToServer()
 app.connectToApi()
@@ -140,51 +205,9 @@ let rowData = [
     },
 ]
 
-let columnDefs = [
-    {headerName: "Name", field: "name", filter: 'agTextColumnFilter'},
-    {headerName: "Email", field: "email"},
-    {headerName: "Phone", field: "phone"},
-    {headerName: "Date of Birth", field: "dob"},
-    {
-        headerName: 'Medals',
-        groupId: 'medalsGroup',
-        children: [
-            // using medal column type
-            {headerName: 'Gold', field: 'gold', type: 'string'},
-            {headerName: 'Silver', field: 'silver', type: 'string'},
-            {headerName: 'Bronze', field: 'bronze', type: 'string'}
-        ]
-    }
-]
 
-// Grid Definition
-// let the grid know which columns and what data to use
-var gridOptions = {
-    medalColumn: {width: 100, columnGroupShow: 'open', suppressFilter: true},
-    debug: false,
-    //showToolPanel: true,
-    enableSorting: true,
-    enableColResize: true,
-    columnDefs: columnDefs,
-    rowData: rowData,
-    enableFilter: true,
-    floatingFilter: true,
-    animateRows: true,
-    defaultColDef: {
-        // make every column editable
-        editable: true,
-        // make every column use 'text' filter by default
-        filter: 'agTextColumnFilter'
-    }
-}
 
-// wait for the document to be loaded, otherwise,
-// ag-Grid will not find the div in the document.
-
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener('DOMContentLoaded', function () {
     // lookup the container we want the Grid to use
-    var eGridDiv = document.querySelector('#myGrid');
-    
-    // create the grid passing in the div to use together with the columns & data we want to use
-    new agGrid.Grid(eGridDiv, gridOptions);
+    console.log('DOM loaded')
 });
