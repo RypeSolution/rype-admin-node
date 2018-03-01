@@ -115,11 +115,13 @@ class RypeAdmin extends EventEmitter3 {
     }
     
     connectToServer() {
-        this.server = this.connect('ws://localhost:26116', {connected:'server_connected', disconnected: 'server_disconnected', retryCount: 'server'})
+        let url = `${location.protocol === 'https:' ? 'wss://' : 'ws://'}${location.hostname}`
+        this.server = this.connect(url, {connected:'server_connected', disconnected: 'server_disconnected', retryCount: 'server'})
     }
     
     connectToApi() {
-        this.api = this.connect('ws://localhost:9000', {connected:'api_connected', disconnected: 'api_disconnected', retryCount: 'api'})
+        let url = location.hostname.indexOf('localhost') === -1 ? 'wss://rype16.herokuapp.com:9000' : 'ws://localhost:9000'
+        this.api = this.connect(url, {connected:'api_connected', disconnected: 'api_disconnected', retryCount: 'api'})
     }
     
     get usersGridOptions(){
