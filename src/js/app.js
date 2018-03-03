@@ -120,7 +120,7 @@ class RypeAdmin extends EventEmitter3 {
     }
     
     connectToApi() {
-        let url = location.hostname.indexOf('localhost') === -1 ? 'wss://rype16.herokuapp.com:9000' : 'ws://localhost:9000'
+        let url = location.hostname.indexOf('localhost') === -1 ? 'wss://rype-api.herokuapp.com' : 'ws://localhost:9000'
         this.api = this.connect(url, {connected:'api_connected', disconnected: 'api_disconnected', retryCount: 'api'})
     }
     
