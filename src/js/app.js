@@ -4,7 +4,7 @@
 
 class Deferred {
     
-    constructor(){
+    constructor() {
         this.id = `${this.constructor._ID++}`
         
         this.promise = new Promise((res, rej) => {
@@ -13,11 +13,11 @@ class Deferred {
         })
     }
     
-    cancel(){
+    cancel() {
         this.reject('Cancelled!')
     }
     
-    then(...args){
+    then(...args) {
         this._promise = (this._promise || this.promise).then(...args)
         return this
     }
@@ -27,23 +27,25 @@ Deferred._ID = 1
 
 class RypeAdmin extends EventEmitter3 {
     
-    constructor(){
+    constructor() {
         super()
-        this.retryCount = {api:0, server: 0}
+        this.retryCount = {api: 0, server: 0}
         this.deferreds = {}
     }
     
     get elems() {
-        return {connectionAlert: $('#connection_alert'),
-                usersGridDiv: $(document.querySelector('#myGrid')),
+        return {
+            connectionAlert: $('#connection_alert'),
+            usersGridDiv: $(document.querySelector('#myGrid')),
             itemsGridDiv: $(document.querySelector('#itemsGrid')),
+            searchInput: $(document.querySelector('#search_term')),
         }
     }
     
-    connect(url, options={}){
+    connect(url, options = {}) {
         let ws = new WebSocket(url, 'echo-protocol')
         this.retryCount[options.retryCount]++
-    
+        
         _.merge(WebSocket.prototype, Object.create(EventEmitter3.prototype))
         EventEmitter3.call(ws)
         
@@ -64,16 +66,16 @@ class RypeAdmin extends EventEmitter3 {
                     EventEmitter3.prototype.on.call(ws, eventName, callback)
                 })
         }
-    
+        
         ws.onopen = () => {
             this.retryCount[options.retryCount] = 0
             this.emit(options.connected || 'server_connected')
         }
-    
+        
         ws.onclose = () => {
             this.emit(options.disconnected || 'server_disconnected')
         }
-    
+        
         ws.onerror = (err) => {
             console.error(err)
         }
@@ -82,7 +84,7 @@ class RypeAdmin extends EventEmitter3 {
             let deferred = new Deferred()
             this.deferreds[deferred.id] = deferred
             
-            let req = {topic:`${topic}${_.includes(topic, '?') ? '&' : '?'}uid=${deferred.id}`, data: data}
+            let req = {topic: `${topic}${_.includes(topic, '?') ? '&' : '?'}uid=${deferred.id}`, data: data}
             ws.send(JSON.stringify(req))
             return deferred
         }
@@ -90,18 +92,18 @@ class RypeAdmin extends EventEmitter3 {
         ws.onmessage = (message) => {
             let msg = JSON.parse(message.data)
             let parts = _.split(msg.topic, '?', 2)
-    
+            
             let parsed = _.chain(_.last(parts))
                 .replace('?', '') // a=b454&c=dhjjh&f=g6hksdfjlksd
                 .split('&') // ["a=b454","c=dhjjh","f=g6hksdfjlksd"]
                 .map(_.partial(_.split, _, '=', 2)) // [["a","b454"],["c","dhjjh"],["f","g6hksdfjlksd"]]
                 .fromPairs() // {"a":"b454","c":"dhjjh","f":"g6hksdfjlksd"}
                 .value()
-    
+            
             let deferredId = parsed.uid
             let deferred = this.deferreds[deferredId]
             let topic = _.first(parts)
-    
+            
             if (_.isObject(deferred)) {
                 delete this.deferreds[deferredId]
                 deferred.resolve(msg)
@@ -118,23 +120,27 @@ class RypeAdmin extends EventEmitter3 {
     
     connectToServer() {
         let url = `${location.protocol === 'https:' ? 'wss://' : 'ws://'}${location.host}`
-        this.server = this.connect(url, {connected:'server_connected', disconnected: 'server_disconnected', retryCount: 'server'})
+        this.server = this.connect(url, {
+            connected: 'server_connected',
+            disconnected: 'server_disconnected',
+            retryCount: 'server'
+        })
     }
     
     connectToApi() {
         let url = location.hostname.indexOf('localhost') === -1 ? 'wss://rype-api.herokuapp.com' : 'ws://localhost:9000'
-        this.api = this.connect(url, {connected:'api_connected', disconnected: 'api_disconnected', retryCount: 'api'})
+        this.api = this.connect(url, {connected: 'api_connected', disconnected: 'api_disconnected', retryCount: 'api'})
     }
     
-    get usersGridOptions(){
-        if(this._usersGridOptions) return this._usersGridOptions
+    get usersGridOptions() {
+        if (this._usersGridOptions) return this._usersGridOptions
         let columnDefs = [
             {headerName: "Name", field: "name"},
             {headerName: "Email", field: "email"},
             {headerName: "Created At", field: "createdAt"},
             //{headerName: "Date of Birth", field: "dob"}
         ]
-    
+        
         this._usersGridOptions = {
             debug: false,
             enableSorting: true,
@@ -148,8 +154,8 @@ class RypeAdmin extends EventEmitter3 {
         return this._usersGridOptions
     }
     
-    get itemsGridOptions(){
-        if(this._itemsGridOptions) return this._itemsGridOptions
+    get itemsGridOptions() {
+        if (this._itemsGridOptions) return this._itemsGridOptions
         let columnDefs = [
             {headerName: "Title", field: "title"},
             {headerName: "Description", field: "description"},
@@ -173,18 +179,30 @@ class RypeAdmin extends EventEmitter3 {
         return this._itemsGridOptions
     }
     
-    get usersGrid(){
-        if(this._usersTable) return this._usersTable
+    get usersGrid() {
+        if (this._usersTable) return this._usersTable
         
         this._usersTable = new agGrid.Grid(this.elems.usersGridDiv.get(0), this.usersGridOptions)
         return this._usersTable
     }
     
-    get itemsGrid(){
-        if(this._itemsGrid) return this._itemsGrid
+    get itemsGrid() {
+        if (this._itemsGrid) return this._itemsGrid
         
         this._itemsGrid = new agGrid.Grid(this.elems.itemsGridDiv.get(0), this.itemsGridOptions)
         return this._itemsGrid
+    }
+    
+    init() {
+        const emitWrap = (event) => {
+            let emit = event.target.getAttribute(`data-emit-${event.type}`)
+            this.emit(`${event.type}_${emit}`, event)
+        }
+        
+        ['keyup', 'click'].forEach((eventType) => {
+            $(document).on(eventType, `[data-emit-${eventType}]`, emitWrap)
+        })
+        
     }
 }
 
@@ -210,12 +228,12 @@ app.on('api_connected', () => {
     console.log('api connected')
     let usersTable = app.usersGrid // init table
     let itemsTable = app.itemsGrid // init table
-
+    
     app.api.on('db_update', (msg) => {
         console.log('db update:', msg)
         
-        for(let update of msg.data.updates){
-            switch(update.type){
+        for (let update of msg.data.updates) {
+            switch (update.type) {
                 case 'User':
                     app.usersGridOptions.api.updateRowData({add: [update.value]})
                     break
@@ -228,10 +246,29 @@ app.on('api_connected', () => {
     })
 })
 
+app.on('submitted_search', (term) => {
+    console.log('submitted search...', term)
+    app.api.json(`/search?q=${term}`)
+        .then((resp) => {
+            console.log('response', resp)
+        })
+})
+
+app.on('click_search', () => {
+    app.emit('submitted_search', app.elems.searchInput.val())
+})
+
+app.on('keyup_search', (ev) => {
+    if (ev.which === 13) app.emit('submitted_search', app.elems.searchInput.val())
+})
+
+app.init()
+
 app.connectToServer()
 app.connectToApi()
 
 document.addEventListener('DOMContentLoaded', function () {
     // lookup the container we want the Grid to use
     console.log('DOM loaded')
+    
 });
