@@ -73,8 +73,9 @@
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <h4 class="navbar-text"><span style="color: forestgreen">Rype</span> Admin</h4>
             <ul class="nav navbar-nav">
-                <li class="active"><a href="#users" aria-controls="settings" role="tab" data-toggle="tab">Users</a></li>
-                <li><a href="#rental_items" aria-controls="settings" role="tab" data-toggle="tab">Rental Items <span class="sr-only">(current)</span></a></li>
+                <li class=""><a href="#search" aria-controls="settings" role="tab" data-toggle="tab">Search</a></li>
+                <li class=""><a href="#users" aria-controls="settings" role="tab" data-toggle="tab">Users</a></li>
+                <li class="active"><a href="#rental_items" aria-controls="settings" role="tab" data-toggle="tab">Rental Items <span class="sr-only">(current)</span></a></li>
 
             </ul>
             <ul class="nav navbar-nav navbar-right">
@@ -107,45 +108,22 @@
 
     <!-- Tab panes -->
     <div class="tab-content">
-        <div role="tabpanel" class="tab-pane active" id="users">
+        <div role="tabpanel" class="tab-pane" id="search">
+            <h1>Search Rype</h1>
+
+        </div>
+        <div role="tabpanel" class="tab-pane" id="users">
             <h1>Rype Customers</h1>
 
             <!-- the div ag-Grid will use to render it's data -->
             <div id="myGrid" style="height: 200px;width: 100%" class="ag-theme-fresh"></div>
 
         </div>
-        <div role="tabpanel" class="tab-pane" id="rental_items">
-            <div class="row">
-                <h1>Rype Rentals</h1>
-                <p>Nothing here</p>
-                <div class="dropup">
-                    <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        Dropup
-                        <span class="caret"></span>
-                    </button>
-                    <ul class="dropdown-menu" aria-labelledby="dropdownMenu2">
-                        <li><a href="#">Action</a></li>
-                        <li><a href="#">Another action</a></li>
-                        <li><a href="#">Something else here</a></li>
-                        <li role="separator" class="divider"></li>
-                        <li><a href="#">Separated link</a></li>
-                    </ul>
-                </div>
+        <div role="tabpanel" class="tab-pane active" id="rental_items">
+            <h1>Rype Rentals</h1>
 
-                <div class="dropup">
-                    <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        Dropup
-                        <span class="caret"></span>
-                    </button>
-                    <ul class="dropdown-menu" aria-labelledby="dropdownMenu2">
-                        <li><a href="#">Action</a></li>
-                        <li><a href="#">Another action</a></li>
-                        <li><a href="#">Something else here</a></li>
-                        <li role="separator" class="divider"></li>
-                        <li><a href="#">Separated link</a></li>
-                    </ul>
-                </div>
-            </div>
+            <!-- the div ag-Grid will use to render it's data -->
+            <div id="itemsGrid" style="height: 200px;width: 100%" class="ag-theme-fresh"></div>
         </div>
     </div>
 

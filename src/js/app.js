@@ -35,7 +35,9 @@ class RypeAdmin extends EventEmitter3 {
     
     get elems() {
         return {connectionAlert: $('#connection_alert'),
-                usersGridDiv: $(document.querySelector('#myGrid'))}
+                usersGridDiv: $(document.querySelector('#myGrid')),
+            itemsGridDiv: $(document.querySelector('#itemsGrid')),
+        }
     }
     
     connect(url, options={}){
@@ -115,7 +117,7 @@ class RypeAdmin extends EventEmitter3 {
     }
     
     connectToServer() {
-        let url = `${location.protocol === 'https:' ? 'wss://' : 'ws://'}${location.hostname}`
+        let url = `${location.protocol === 'https:' ? 'wss://' : 'ws://'}${location.host}`
         this.server = this.connect(url, {connected:'server_connected', disconnected: 'server_disconnected', retryCount: 'server'})
     }
     
@@ -146,11 +148,43 @@ class RypeAdmin extends EventEmitter3 {
         return this._usersGridOptions
     }
     
+    get itemsGridOptions(){
+        if(this._itemsGridOptions) return this._itemsGridOptions
+        let columnDefs = [
+            {headerName: "Title", field: "title"},
+            {headerName: "Description", field: "description"},
+            {headerName: "Currency", field: "currencyCode"},
+            {headerName: "Price", field: "price"},
+            {headerName: "Thumbnail", field: "thumbnail_url"},
+            {headerName: "Created At", field: "createdAt"},
+            //{headerName: "Date of Birth", field: "dob"}
+        ]
+        
+        this._itemsGridOptions = {
+            debug: false,
+            enableSorting: true,
+            enableColResize: true,
+            rowData: [],
+            columnDefs: columnDefs,
+            enableFilter: true,
+            floatingFilter: true,
+            animateRows: true,
+        }
+        return this._itemsGridOptions
+    }
+    
     get usersGrid(){
         if(this._usersTable) return this._usersTable
         
         this._usersTable = new agGrid.Grid(this.elems.usersGridDiv.get(0), this.usersGridOptions)
         return this._usersTable
+    }
+    
+    get itemsGrid(){
+        if(this._itemsGrid) return this._itemsGrid
+        
+        this._itemsGrid = new agGrid.Grid(this.elems.itemsGridDiv.get(0), this.itemsGridOptions)
+        return this._itemsGrid
     }
 }
 
@@ -175,12 +209,20 @@ app.on('api_disconnected', () => {
 app.on('api_connected', () => {
     console.log('api connected')
     let usersTable = app.usersGrid // init table
+    let itemsTable = app.itemsGrid // init table
 
     app.api.on('db_update', (msg) => {
         console.log('db update:', msg)
         
         for(let update of msg.data.updates){
-            app.usersGridOptions.api.updateRowData({add: [update.value]})
+            switch(update.type){
+                case 'User':
+                    app.usersGridOptions.api.updateRowData({add: [update.value]})
+                    break
+                case 'RentalItem':
+                    app.itemsGridOptions.api.updateRowData({add: [update.value]})
+                    break
+            }
         }
         
     })
@@ -188,26 +230,6 @@ app.on('api_connected', () => {
 
 app.connectToServer()
 app.connectToApi()
-
-let rowData = [
-    {
-        name: "Obialo Chidiebere", email: "obialo@person.ng", phone: "07545087103", dob: "1990/05/16", gold: 2,
-        silver: 0,
-        bronze: 0,
-    },
-    {
-        name: "Hannah Montana", email: "hannah@tester.com", phone: "+447545087103", dob: "1989/12/17", gold: 6,
-        silver: 0,
-        bronze: 2,
-    },
-    {
-        name: "Joseph Whiskey", email: "whiskey@test.co.uk", phone: "08005087103", dob: "1976/08/25", gold: 3,
-        silver: 4,
-        bronze: 0,
-    },
-]
-
-
 
 document.addEventListener('DOMContentLoaded', function () {
     // lookup the container we want the Grid to use
