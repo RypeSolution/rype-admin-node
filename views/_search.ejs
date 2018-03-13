@@ -7,46 +7,19 @@
     </div>
 </div><!-- /input-group -->
 
-<ul class="nav nav-pills" style="margin: 16px 0">
+<ul class="nav nav-pills" style="margin: 16px 0" id="search_results_filter">
+    <li role="presentation" class="active"><a data-emit-click="show_all_search_result" role="tab" data-toggle="pill">All</a></li>
     <li role="presentation" class=""><a href="#search_users" role="tab" data-toggle="pill">Users</a></li>
     <li role="presentation"><a href="#search_items" role="tab" data-toggle="pill">Rental Items</a></li>
     <li role="presentation"><a href="#search_orders" role="tab" data-toggle="pill">Orders</a></li>
 </ul>
 
-<div class="tab-content">
+<div class="tab-content" id="search_results_container">
     <div class="tab-pane fade in active" id="search_users">
-        <div class="list-group">
-            <a href="#" class="list-group-item active">
-                <h4 class="list-group-item-heading">List group item heading</h4>
-                <p class="list-group-item-text">...</p>
-            </a>
-            <a href="#" class="list-group-item">
-                <h4 class="list-group-item-heading">List group item heading</h4>
-                <p class="list-group-item-text">...</p>
-            </a>
-            <a href="#" class="list-group-item">
-                <h4 class="list-group-item-heading">List group item heading</h4>
-                <p class="list-group-item-text">...</p>
-            </a>
-        </div>
-
     </div>
     <div class="tab-pane fade in active" id="search_items" style="height: 200px;width: 100%">
-        <ul class="media-list">
-            <li class="media" data-category="app" data-label="dog_world" data-url="https://en.wikipedia.org/wiki/Dog" data-group="Dogs" data-thumbnail="/examples/dashboard/app_icon1.ico" data-title="Dog World" data-description="Different breeds of dog" data-fulldescription="Different breeds of dog">
-                <div class="media-left media-middle">
-                    <a href="#" data-category="app" data-title="Dog World" data-description="Different breeds of dog" data-label="dog_world" data-url="https://en.wikipedia.org/wiki/Dog" data-group="dogs">
-                        <img width="64px" height="64px" class="media-object" src="/examples/dashboard/app_icon1.ico" alt="app image">
-                    </a>
-                </div>
-                <div class="media-body">
-                    <h4 class="media-heading"><a href="#" data-category="app" data-label="dog_world" data-url="https://en.wikipedia.org/wiki/Dog" data-title="Dog World" data-description="Different breeds of dog" data-group="dogs">Dog World</a></h4>
-                    <p>Different breeds of dog</p>
-                </div>
-            </li>
-        </ul>
+
     </div>
     <div class="tab-pane fade in active" id="search_orders" style="height: 200px;width: 100%">
-        Orders
     </div>
 </div>

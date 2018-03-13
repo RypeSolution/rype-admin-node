@@ -39,6 +39,9 @@ class RypeAdmin extends EventEmitter3 {
             usersGridDiv: $(document.querySelector('#myGrid')),
             itemsGridDiv: $(document.querySelector('#itemsGrid')),
             searchInput: $(document.querySelector('#search_term')),
+            searchResultsItem: $(document.querySelector('#search_items')),
+            searchResultsUser: $(document.querySelector('#search_users')),
+            searchResultsContainer: $('#search_results_container')
         }
     }
     
@@ -193,6 +196,30 @@ class RypeAdmin extends EventEmitter3 {
         return this._itemsGrid
     }
     
+    static newSearchResult(kwargs){
+        let searchResElem = this._SEARCH_RESULT_POOL.shift()
+        let defaultOpts = {thumbnail_url: 'http://www.aber.ac.uk/staff-profile-assets/img/noimg.png', title: '', description: ''}
+        
+        kwargs = _.merge(defaultOpts, kwargs)
+        
+        if(searchResElem){
+            searchResElem = $(searchResElem)
+            searchResElem.find('p').text(kwargs.description || kwargs.email)
+            searchResElem.find('.media-heading a').text(kwargs.title || kwargs.name)
+            searchResElem.find('img').attr('src', kwargs.thumbnail_url)
+        }else{
+            searchResElem = $(_.template(this.TEMPLATE_SEARCH_RESULT)(kwargs))
+        }
+        
+        searchResElem.prop('hidden', false)
+        return searchResElem
+    }
+    
+    static deleteSearchResult(searchResult){
+        $(searchResult).prop('hidden', true)
+        this._SEARCH_RESULT_POOL.push(searchResult)
+    }
+    
     init() {
         const emitWrap = (event) => {
             let emit = event.target.getAttribute(`data-emit-${event.type}`)
@@ -207,6 +234,8 @@ class RypeAdmin extends EventEmitter3 {
 }
 
 window.app = new RypeAdmin()
+
+RypeAdmin._SEARCH_RESULT_POOL = []
 
 app.on('server_disconnected', () => {
     console.log('server disconnected')
@@ -247,10 +276,33 @@ app.on('api_connected', () => {
 })
 
 app.on('submitted_search', (term) => {
-    console.log('submitted search...', term)
     app.api.json(`/search?q=${term}`)
         .then((resp) => {
-            console.log('response', resp)
+            
+            $('.search-result-item').each((idx, elem) => {
+                RypeAdmin.deleteSearchResult(elem)
+            })
+            
+            if(_.isEmpty(resp.data.results)){
+                $('#search_results_filter').find('[role="presentation"]').addClass('disabled').removeClass('active') }
+            else{
+                $('#search_results_filter').find('[role="presentation"]').removeClass('disabled')
+                app.elems.searchResultsContainer.find('.tab-pane').addClass('in active')
+            }
+            
+            for(let searchResultKwargs of resp.data.results){
+                let elem = RypeAdmin.newSearchResult(searchResultKwargs)
+                
+                switch(searchResultKwargs.$type){
+                    case 'RentalItem':
+                        app.elems.searchResultsItem.append(elem)
+                        break
+                    case 'User':
+                        app.elems.searchResultsUser.append(elem)
+                        break
+                }
+                
+            }
         })
 })
 
@@ -259,7 +311,12 @@ app.on('click_search', () => {
 })
 
 app.on('keyup_search', (ev) => {
-    if (ev.which === 13) app.emit('submitted_search', app.elems.searchInput.val())
+    //if (ev.which === 13)
+    app.emit('submitted_search', app.elems.searchInput.val())
+})
+
+app.on('click_show_all_search_result', () => {
+    app.elems.searchResultsContainer.find('.tab-pane').addClass('in active')
 })
 
 app.init()
@@ -272,3 +329,19 @@ document.addEventListener('DOMContentLoaded', function () {
     console.log('DOM loaded')
     
 });
+
+RypeAdmin.TEMPLATE_SEARCH_RESULT = `
+<ul class="media-list search-result-item">
+    <li class="media" data-thumbnail="<%= thumbnail_url %>">
+        <div class="media-left media-middle">
+            <a href="#" data-category="app">
+                <img width="64px" height="64px" style="border-radius: 4px;background-color: aliceblue" class="media-object" src="<%= thumbnail_url %>" alt="product image">
+            </a>
+        </div>
+        <div class="media-body">
+            <h4 class="media-heading"><a href="#"><%= title || name %></a></h4>
+            <p><%= description || email %></p>
+        </div>
+    </li>
+</ul>
+`
